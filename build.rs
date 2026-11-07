@@ -90,7 +90,18 @@ fn install_android_deps() {
     println!("cargo:rustc-link-lib=OpenSLES");
 }
 
+fn patch_app_name() {
+    let path = "libs/hbb_common/src/config.rs";
+    if let Ok(content) = std::fs::read_to_string(path) {
+        if content.contains("\"RustDesk\"") {
+            let new_content = content.replace("RwLock::new(\"RustDesk\".to_owned())", "RwLock::new(\"SideDesk\".to_owned())");
+            let _ = std::fs::write(path, new_content);
+        }
+    }
+}
+
 fn main() {
+    patch_app_name();
     hbb_common::gen_version();
     install_android_deps();
     #[cfg(all(windows, feature = "inline"))]
