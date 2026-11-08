@@ -181,17 +181,17 @@ class ColorThemeExtension extends ThemeExtension<ColorThemeExtension> {
   );
 
   static final dark = ColorThemeExtension(
-    border: Color(0xFF555555),
-    border2: Color(0xFFE5E5E5),
+    border: Color(0xFF334155),
+    border2: Color(0xFF475569),
     border3: Colors.white24,
-    highlight: Color(0xFF3F3F3F),
-    drag_indicator: Colors.grey,
-    shadow: Colors.grey,
-    errorBannerBg: Color(0xFF470F2D),
-    me: Colors.greenAccent,
-    toastBg: Colors.white.withOpacity(0.6),
-    toastText: Colors.black,
-    divider: Colors.white38,
+    highlight: Color(0xFF1E293B),
+    drag_indicator: Color(0xFF64748B),
+    shadow: Color(0xFF020617),
+    errorBannerBg: Color(0xFF450A0A),
+    me: Color(0xFF22C55E),
+    toastBg: Color(0xFF0F172A).withOpacity(0.85),
+    toastText: Colors.white,
+    divider: Color(0xFF334155),
   );
 
   @override
@@ -248,18 +248,18 @@ class ColorThemeExtension extends ThemeExtension<ColorThemeExtension> {
 class MyTheme {
   MyTheme._();
 
-  static const Color grayBg = Color(0xFFEFEFF2);
-  static const Color accent = Color(0xFF0071FF);
-  static const Color accent50 = Color(0x770071FF);
-  static const Color accent80 = Color(0xAA0071FF);
-  static const Color canvasColor = Color(0xFF212121);
-  static const Color border = Color(0xFFCCCCCC);
-  static const Color idColor = Color(0xFF00B6F0);
-  static const Color darkGray = Color.fromARGB(255, 148, 148, 148);
-  static const Color cmIdColor = Color(0xFF21790B);
-  static const Color dark = Colors.black87;
-  static const Color button = Color(0xFF2C8CFF);
-  static const Color hoverBorder = Color(0xFF999999);
+  static const Color grayBg = Color(0xFF0F172A);
+  static const Color accent = Color(0xFF3B82F6);
+  static const Color accent50 = Color(0x773B82F6);
+  static const Color accent80 = Color(0xAA3B82F6);
+  static const Color canvasColor = Color(0xFF0F172A);
+  static const Color border = Color(0xFF334155);
+  static const Color idColor = Color(0xFF38BDF8);
+  static const Color darkGray = Color(0xFF94A3B8);
+  static const Color cmIdColor = Color(0xFF22C55E);
+  static const Color dark = Color(0xFF0F172A);
+  static const Color button = Color(0xFF2563EB);
+  static const Color hoverBorder = Color(0xFF475569);
 
   // ListTile
   static const ListTileThemeData listTileTheme = ListTileThemeData(
@@ -471,30 +471,32 @@ class MyTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: false,
     brightness: Brightness.dark,
-    hoverColor: Color.fromARGB(255, 45, 46, 53),
-    scaffoldBackgroundColor: Color(0xFF18191E),
-    dialogBackgroundColor: Color(0xFF18191E),
+    hoverColor: Color(0xFF334155),
+    scaffoldBackgroundColor: Color(0xFF0F172A),
+    dialogBackgroundColor: Color(0xFF1E293B),
     appBarTheme: AppBarTheme(
       shadowColor: Colors.transparent,
+      backgroundColor: Color(0xFF0F172A),
     ),
     dialogTheme: DialogTheme(
       elevation: 15,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18.0),
+        borderRadius: BorderRadius.circular(16.0),
         side: BorderSide(
           width: 1,
-          color: Color(0xFF24252B),
+          color: Color(0xFF334155),
         ),
       ),
     ),
     scrollbarTheme: scrollbarThemeDark,
     inputDecorationTheme: (isDesktop || isWebDesktop)
         ? InputDecorationTheme(
-            fillColor: Color(0xFF24252B),
+            fillColor: Color(0xFF1E293B),
             filled: true,
             isDense: true,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Color(0xFF334155)),
             ),
           )
         : null,
@@ -509,7 +511,7 @@ class MyTheme {
         color: accent80,
       ),
     ),
-    cardColor: Color(0xFF24252B),
+    cardColor: Color(0xFF1E293B),
     visualDensity: VisualDensity.adaptivePlatformDensity,
     tabBarTheme: const TabBarTheme(
       labelColor: Colors.white70,
@@ -543,12 +545,12 @@ class MyTheme {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        backgroundColor: Color(0xFF24252B),
-        side: BorderSide(color: Colors.white12, width: 0.5),
+        backgroundColor: Color(0xFF1E293B),
+        side: BorderSide(color: Color(0xFF334155), width: 1.0),
         disabledForegroundColor: Colors.white70,
         foregroundColor: Colors.white70,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(10.0),
         ),
       ),
     ),
@@ -558,11 +560,11 @@ class MyTheme {
     listTileTheme: listTileTheme,
     menuBarTheme: MenuBarThemeData(
         style: MenuStyle(
-            backgroundColor: MaterialStatePropertyAll(Color(0xFF121212)))),
+            backgroundColor: MaterialStatePropertyAll(Color(0xFF0F172A)))),
     colorScheme: ColorScheme.dark(
-      primary: Colors.blue,
+      primary: button,
       secondary: accent,
-      background: Color(0xFF24252B),
+      background: Color(0xFF1E293B),
     ),
     popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(
