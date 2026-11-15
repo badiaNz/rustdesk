@@ -379,7 +379,23 @@ pub(crate) fn executable_paths_match(left: &Path, right: &Path) -> bool {
             }
             normalized.to_ascii_lowercase()
         }
-        return normalize(left) == normalize(right);
+        let norm_left = normalize(left);
+        let norm_right = normalize(right);
+        if norm_left == norm_right {
+            return true;
+        }
+        // Allow SideDesk.exe and rustdesk.exe in the same directory to communicate
+        let left_parent = left.parent();
+        let right_parent = right.parent();
+        if left_parent.is_some() && left_parent == right_parent {
+            let left_name = left.file_name().unwrap_or_default().to_string_lossy().to_lowercase();
+            let right_name = right.file_name().unwrap_or_default().to_string_lossy().to_lowercase();
+            let is_sidedesk_or_rustdesk = |name: &str| name == "sidedesk.exe" || name == "rustdesk.exe";
+            if is_sidedesk_or_rustdesk(&left_name) && is_sidedesk_or_rustdesk(&right_name) {
+                return true;
+            }
+        }
+        return false;
     }
     #[cfg(target_os = "macos")]
     {
