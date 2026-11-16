@@ -63,17 +63,23 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return _buildBlock(
       child: Stack(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          Column(
             children: [
-              if (!isIncomingOnly) buildNavRail(context),
-              buildLeftPane(context),
-              if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
+              if (!isIncomingOnly) buildTopMenuBar(context),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    buildLeftPane(context),
+                    if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
+                  ],
+                ),
+              ),
             ],
           ),
           if (!isIncomingOnly)
             Positioned(
-              left: 74,
+              left: 20,
               right: 20,
               bottom: 12,
               child: Obx(() => buildMinimalBottomNotification(stateGlobal.updateUrl.value)),
@@ -88,33 +94,33 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         block: _block, mask: true, use: canBeBlocked, child: child);
   }
 
-  Widget buildNavRail(BuildContext context) {
+  Widget buildTopMenuBar(BuildContext context) {
     return Container(
-      width: 58,
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: const BoxDecoration(
-        color: Color(0xFFF8FAFC),
+        color: Colors.white,
         border: Border(
-          right: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
         ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          const SizedBox(height: 12),
-          // SideDesk Logo Mark
+          // SideDesk Brand Logo
           Container(
-            width: 36,
-            height: 36,
+            width: 30,
+            height: 30,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x330284C7),
-                  blurRadius: 8,
+                  blurRadius: 6,
                   offset: Offset(0, 2),
                 ),
               ],
@@ -125,103 +131,227 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                  fontSize: 15,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          _buildRailIcon(
+          const SizedBox(width: 8),
+          const Text(
+            "SideDesk",
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F9FF),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFBAE6FD)),
+            ),
+            child: const Text(
+              "Light v1.5.1",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF0284C7),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Container(
+            height: 20,
+            width: 1,
+            color: const Color(0xFFE2E8F0),
+          ),
+          const SizedBox(width: 12),
+          // Top Navigation Menu Tabs
+          _buildTopMenuItem(
             icon: Icons.home_rounded,
-            tooltip: 'Home Session',
+            label: "Home",
             index: 0,
             onTap: () {
               setState(() => _selectedNav = 0);
               gFFI.peerTabModel.setCurrentTab(0);
             },
           ),
-          const SizedBox(height: 10),
-          _buildRailIcon(
-            icon: Icons.contacts_outlined,
-            tooltip: 'Address Book',
+          const SizedBox(width: 4),
+          _buildTopMenuItem(
+            icon: Icons.history_rounded,
+            label: translate("Recent Sessions"),
             index: 1,
             onTap: () {
               setState(() => _selectedNav = 1);
-              gFFI.peerTabModel.setCurrentTab(3);
+              gFFI.peerTabModel.setCurrentTab(0);
             },
           ),
-          const SizedBox(height: 10),
-          _buildRailIcon(
-            icon: Icons.wifi_tethering_rounded,
-            tooltip: 'LAN Discovered',
+          const SizedBox(width: 4),
+          _buildTopMenuItem(
+            icon: Icons.star_rounded,
+            label: translate("Favorites"),
             index: 2,
             onTap: () {
               setState(() => _selectedNav = 2);
-              gFFI.peerTabModel.setCurrentTab(2);
-            },
-          ),
-          const SizedBox(height: 10),
-          _buildRailIcon(
-            icon: Icons.star_border_rounded,
-            tooltip: 'Favorites',
-            index: 3,
-            onTap: () {
-              setState(() => _selectedNav = 3);
               gFFI.peerTabModel.setCurrentTab(1);
             },
           ),
-          const Spacer(),
-          _buildRailIcon(
-            icon: Icons.settings_outlined,
-            tooltip: 'Settings',
-            index: 99,
+          const SizedBox(width: 4),
+          _buildTopMenuItem(
+            icon: Icons.wifi_tethering_rounded,
+            label: translate("Discovered"),
+            index: 3,
             onTap: () {
-              DesktopTabPage.onAddSetting();
+              setState(() => _selectedNav = 3);
+              gFFI.peerTabModel.setCurrentTab(2);
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(width: 4),
+          _buildTopMenuItem(
+            icon: Icons.contacts_outlined,
+            label: translate("Address Book"),
+            index: 4,
+            onTap: () {
+              setState(() => _selectedNav = 4);
+              gFFI.peerTabModel.setCurrentTab(3);
+            },
+          ),
+          const Spacer(),
+          // Status Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFECFDF5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFA7F3D0)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  "Direct P2P Ready",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF047857),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Settings button
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: DesktopTabPage.onAddSetting,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.settings_outlined, size: 14, color: Color(0xFF475569)),
+                  const SizedBox(width: 4),
+                  Text(
+                    translate("Settings"),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildRailIcon({
+  Widget _buildTopMenuItem({
     required IconData icon,
-    required String tooltip,
+    required String label,
     required int index,
     required VoidCallback onTap,
   }) {
     final isSelected = _selectedNav == index;
-    return Tooltip(
-      message: tooltip,
-      preferBelow: false,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF0284C7) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: isSelected
-                ? const [
-                    BoxShadow(
-                      color: Color(0x330284C7),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: isSelected ? Colors.white : const Color(0xFF64748B),
-          ),
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0284C7) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x330284C7),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: isSelected ? Colors.white : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.white : const Color(0xFF334155),
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _onPeerTabChanged() {
+    if (mounted) {
+      final t = gFFI.peerTabModel.currentTab;
+      int nav = 0;
+      if (t == 0) {
+        nav = 1;
+      } else if (t == 1) {
+        nav = 2;
+      } else if (t == 2) {
+        nav = 3;
+      } else if (t == 3) {
+        nav = 4;
+      }
+      if (_selectedNav != nav) {
+        setState(() => _selectedNav = nav);
+      }
+    }
   }
 
   Widget buildLeftPane(BuildContext context) {
@@ -1124,6 +1254,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   void initState() {
     super.initState();
+    gFFI.peerTabModel.addListener(_onPeerTabChanged);
     _updateTimer = periodic_immediate(const Duration(seconds: 1), () async {
       await gFFI.serverModel.fetchID();
       final error = await bind.mainGetError();
@@ -1301,6 +1432,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     Get.delete<RxBool>(tag: 'stop-service');
     _updateTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
+    gFFI.peerTabModel.removeListener(_onPeerTabChanged);
     super.dispose();
   }
 
