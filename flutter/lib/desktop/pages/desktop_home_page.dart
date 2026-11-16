@@ -52,6 +52,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
   final RxBool _editHover = false.obs;
   final RxBool _block = false.obs;
+  int _selectedNav = 0;
 
   final GlobalKey _childKey = GlobalKey();
 
@@ -60,18 +61,167 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     super.build(context);
     final isIncomingOnly = bind.isIncomingOnly();
     return _buildBlock(
-        child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildLeftPane(context),
-        if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
-      ],
-    ));
+      child: Stack(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!isIncomingOnly) buildNavRail(context),
+              buildLeftPane(context),
+              if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
+            ],
+          ),
+          if (!isIncomingOnly)
+            Positioned(
+              left: 74,
+              right: 20,
+              bottom: 12,
+              child: Obx(() => buildMinimalBottomNotification(stateGlobal.updateUrl.value)),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildBlock({required Widget child}) {
     return buildRemoteBlock(
         block: _block, mask: true, use: canBeBlocked, child: child);
+  }
+
+  Widget buildNavRail(BuildContext context) {
+    return Container(
+      width: 58,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        border: Border(
+          right: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+        ),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          // SideDesk Logo Mark
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x330284C7),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Text(
+                "S",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildRailIcon(
+            icon: Icons.home_rounded,
+            tooltip: 'Home Session',
+            index: 0,
+            onTap: () {
+              setState(() => _selectedNav = 0);
+              gFFI.peerTabModel.setCurrentTab(0);
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildRailIcon(
+            icon: Icons.contacts_outlined,
+            tooltip: 'Address Book',
+            index: 1,
+            onTap: () {
+              setState(() => _selectedNav = 1);
+              gFFI.peerTabModel.setCurrentTab(3);
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildRailIcon(
+            icon: Icons.wifi_tethering_rounded,
+            tooltip: 'LAN Discovered',
+            index: 2,
+            onTap: () {
+              setState(() => _selectedNav = 2);
+              gFFI.peerTabModel.setCurrentTab(2);
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildRailIcon(
+            icon: Icons.star_border_rounded,
+            tooltip: 'Favorites',
+            index: 3,
+            onTap: () {
+              setState(() => _selectedNav = 3);
+              gFFI.peerTabModel.setCurrentTab(1);
+            },
+          ),
+          const Spacer(),
+          _buildRailIcon(
+            icon: Icons.settings_outlined,
+            tooltip: 'Settings',
+            index: 99,
+            onTap: () {
+              DesktopTabPage.onAddSetting();
+            },
+          ),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRailIcon({
+    required IconData icon,
+    required String tooltip,
+    required int index,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = _selectedNav == index;
+    return Tooltip(
+      message: tooltip,
+      preferBelow: false,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF0284C7) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? const [
+                    BoxShadow(
+                      color: Color(0x330284C7),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: isSelected ? Colors.white : const Color(0xFF64748B),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget buildLeftPane(BuildContext context) {
@@ -84,31 +234,45 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           alignment: Alignment.center,
           child: loadPowered(context),
         ),
-      Align(
-        alignment: Alignment.center,
-        child: loadLogo(),
-      ),
       buildTip(context),
       if (!isOutgoingOnly) buildIDBoard(context),
       if (!isOutgoingOnly) buildPasswordBoard(context),
-      FutureBuilder<Widget>(
-        future: Future.value(
-            Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
-        builder: (_, data) {
-          if (data.hasData) {
-            if (isIncomingOnly) {
-              if (isInHomePage()) {
-                Future.delayed(Duration(milliseconds: 300), () {
-                  _updateWindowSize();
-                });
-              }
-            }
-            return data.data!;
-          } else {
-            return const Offstage();
-          }
-        },
-      ),
+      if (!isOutgoingOnly)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lan_outlined, size: 14, color: Color(0xFF0284C7)),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    "Direct P2P Ready",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF334155),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
     ];
     if (isIncomingOnly) {
       children.addAll([
@@ -128,8 +292,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return ChangeNotifierProvider.value(
       value: gFFI.serverModel,
       child: Container(
-        width: isIncomingOnly ? 300.0 : 260.0,
-        margin: EdgeInsets.fromLTRB(isIncomingOnly ? 8 : 14, 14, isIncomingOnly ? 8 : 6, 14),
+        width: isIncomingOnly ? 300.0 : 270.0,
+        margin: EdgeInsets.fromLTRB(isIncomingOnly ? 8 : 12, 12, isIncomingOnly ? 8 : 6, 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -338,7 +502,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   buildPasswordBoard2(BuildContext context, ServerModel model) {
     RxBool refreshHover = false.obs;
     RxBool editHover = false.obs;
-    final textColor = Theme.of(context).textTheme.titleLarge?.color;
     final showOneTime = model.approveMode != 'click' &&
         model.verificationMethod != kUsePermanentPassword;
     return Container(
@@ -559,54 +722,183 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     );
   }
 
-  Widget buildHelpCards(String updateUrl) {
+  Widget buildMinimalBottomNotification(String updateUrl) {
+    if (isCardClosed) return const SizedBox.shrink();
+
+    // Check if new version available
     if (!bind.isCustomClient() &&
         updateUrl.isNotEmpty &&
-        !isCardClosed &&
         bind.mainUriPrefixSync().contains('rustdesk')) {
       final isToUpdate = (isWindows || isMacOS) && bind.mainIsInstalled();
-      String btnText = isToUpdate ? 'Update' : 'Download';
-      GestureTapCallback onPressed = () async {
-        final Uri url = Uri.parse('https://rustdesk.com/download');
-        await launchUrl(url);
-      };
-      if (isToUpdate) {
-        onPressed = () {
-          handleUpdate(updateUrl);
-        };
-      }
-      return buildInstallCard(
-          "Status",
-          "${translate("new-version-of-{${bind.mainGetAppNameSync()}}-tip")} (${bind.mainGetNewVersion()}).",
-          btnText,
-          onPressed,
-          closeButton: true,
-          help: isToUpdate ? 'Changelog' : null,
-          link: isToUpdate
-              ? 'https://github.com/rustdesk/rustdesk/releases/tag/${bind.mainGetNewVersion()}'
-              : null);
+      final btnText = isToUpdate ? 'Update' : 'Download';
+      return _buildMinimalBanner(
+        icon: Icons.system_update_alt_rounded,
+        title: "SideDesk Update",
+        content: "${translate("new-version-of-{${bind.mainGetAppNameSync()}}-tip")} (${bind.mainGetNewVersion()}).",
+        btnText: btnText,
+        onPressed: () async {
+          if (isToUpdate) {
+            handleUpdate(updateUrl);
+          } else {
+            await launchUrl(Uri.parse('https://rustdesk.com/download'));
+          }
+        },
+        onClose: () => setState(() => isCardClosed = true),
+      );
     }
+
+    // Windows Installation / UAC Elevation notification
+    if (isWindows && !bind.isDisableInstallation()) {
+      if (!bind.mainIsInstalled()) {
+        return _buildMinimalBanner(
+          icon: Icons.admin_panel_settings_outlined,
+          title: "SideDesk Portable Mode",
+          content: "Jalankan instalasi untuk mengaktifkan elevasi UAC dan integrasi background service.",
+          btnText: "Install",
+          onPressed: () async {
+            await rustDeskWinManager.closeAllSubWindows();
+            bind.mainGotoInstall();
+          },
+          onClose: () => setState(() => isCardClosed = true),
+        );
+      } else if (bind.mainIsInstalledLowerVersion()) {
+        return _buildMinimalBanner(
+          icon: Icons.upgrade_rounded,
+          title: "SideDesk Upgrade",
+          content: "Versi instalasi Anda lebih rendah. Klik untuk upgrade.",
+          btnText: "Upgrade",
+          onPressed: () async {
+            await rustDeskWinManager.closeAllSubWindows();
+            bind.mainUpdateMe();
+          },
+          onClose: () => setState(() => isCardClosed = true),
+        );
+      }
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildMinimalBanner({
+    required IconData icon,
+    required String title,
+    required String content,
+    required String btnText,
+    required VoidCallback onPressed,
+    required VoidCallback onClose,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 820),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x180284C7),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F9FF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFBAE6FD)),
+            ),
+            child: Icon(icon, color: const Color(0xFF0284C7), size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        "UAC",
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0284C7),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  content,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF64748B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0284C7),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+              minimumSize: const Size(64, 30),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: onPressed,
+            child: Text(
+              btnText,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: onClose,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              child: const Icon(Icons.close, size: 16, color: Color(0xFF94A3B8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildHelpCards(String updateUrl) {
     if (systemError.isNotEmpty) {
       return buildInstallCard("", systemError, "", () {});
     }
 
-    if (isWindows && !bind.isDisableInstallation()) {
-      if (!bind.mainIsInstalled()) {
-        return buildInstallCard(
-            "", bind.isOutgoingOnly() ? "" : "install_tip", "Install",
-            () async {
-          await rustDeskWinManager.closeAllSubWindows();
-          bind.mainGotoInstall();
-        });
-      } else if (bind.mainIsInstalledLowerVersion()) {
-        return buildInstallCard(
-            "Status", "Your installation is lower version.", "Click to upgrade",
-            () async {
-          await rustDeskWinManager.closeAllSubWindows();
-          bind.mainUpdateMe();
-        });
-      }
-    } else if (isMacOS) {
+    if (isMacOS) {
       final isOutgoingOnly = bind.isOutgoingOnly();
       if (!(isOutgoingOnly || bind.mainIsCanScreenRecording(prompt: false))) {
         return buildInstallCard("Permissions", "config_screen", "Configure",
@@ -740,12 +1032,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
               0, marginTop, 0, bind.isIncomingOnly() ? marginTop : 0),
           child: Container(
               decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: const LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
-                  Color.fromARGB(255, 226, 66, 188),
-                  Color.fromARGB(255, 244, 114, 124),
+                  Color(0xFF0284C7),
+                  Color(0xFF0369A1),
                 ],
               )),
               padding: EdgeInsets.all(20),

@@ -207,6 +207,7 @@ class _ConnectionPageState extends State<ConnectionPage>
   final TextEditingController _idEditingController = TextEditingController();
 
   String selectedConnectionType = 'Connect';
+  int _connectionMode = 0; // 0: Remote, 1: Files, 2: Terminal
 
   bool isWindowMinimized = false;
 
@@ -341,6 +342,52 @@ class _ConnectionPageState extends State<ConnectionPage>
         isTcpTunneling: isTcpTunneling);
   }
 
+  void handleMainConnect() {
+    if (_connectionMode == 1) {
+      onConnect(isFileTransfer: true);
+    } else if (_connectionMode == 2) {
+      onConnect(isTerminal: true);
+    } else {
+      onConnect();
+    }
+  }
+
+  Widget _buildModePill(String title, int mode) {
+    final isSelected = _connectionMode == mode;
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () {
+        setState(() {
+          _connectionMode = mode;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0284C7) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x240284C7),
+                    blurRadius: 4,
+                    offset: Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? Colors.white : const Color(0xFF64748B),
+          ),
+        ),
+      ),
+    );
+  }
+
   RequestApprovalMenu _requestApprovalMenu(BuildContext context) {
     MenuEntryButton<String> action(String title,
             {bool isFileTransfer = false,
@@ -415,35 +462,57 @@ class _ConnectionPageState extends State<ConnectionPage>
                     getConnectionPageTitle(context, false),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFBBF7D0)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF16A34A),
-                          shape: BoxShape.circle,
-                        ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        "Online",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF15803D),
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildModePill("Remote", 0),
+                          _buildModePill("Files", 1),
+                          _buildModePill("Terminal", 2),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFBBF7D0)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF16A34A),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            "Online",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF15803D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ).marginOnly(bottom: 14),
@@ -544,7 +613,7 @@ class _ConnectionPageState extends State<ConnectionPage>
                             _idController.id = v;
                           },
                           onSubmitted: (_) {
-                            onConnect();
+                            handleMainConnect();
                           },
                         ).workaroundFreezeLinuxMint());
                   },
@@ -622,7 +691,7 @@ class _ConnectionPageState extends State<ConnectionPage>
               padding: const EdgeInsets.only(top: 14.0),
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 SizedBox(
-                  height: 32.0,
+                  height: 34.0,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0284C7),
@@ -630,15 +699,17 @@ class _ConnectionPageState extends State<ConnectionPage>
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
                       elevation: 1,
                     ),
-                    icon: const Icon(Icons.flash_on, size: 15),
-                    onPressed: () {
-                      onConnect();
-                    },
+                    icon: const Icon(Icons.flash_on, size: 16),
+                    onPressed: handleMainConnect,
                     label: Text(
-                      translate("Connect"),
+                      _connectionMode == 1
+                          ? translate("Transfer file")
+                          : (_connectionMode == 2
+                              ? translate("Terminal")
+                              : translate("Connect")),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ),
